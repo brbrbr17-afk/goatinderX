@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GoatTinder — Modern Love for Caprines</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff3366;
+            --primary-gradient: linear-gradient(135deg, #ff3366 0%, #ff6b3d 100%);
+            --bg-dark: #0f1115;
+            --card-bg: #181c24;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 16px;
+            padding: 0 10px;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            margin: 0;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .catchphrase {
+            font-style: italic;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            min-height: 20px;
+            transition: opacity 0.3s ease;
+            max-width: 340px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 360px;
+            height: 80vh;
+            max-height: 600px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #swipeScreen {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .card-image-wrapper {
+            position: relative;
+            width: 100%;
+            flex: 1;
+            background-color: #222;
+            overflow: hidden;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .card-gradient-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(to top, rgba(24, 28, 36, 1) 0%, rgba(24, 28, 36, 0) 100%);
+        }
+
+        .card-info {
+            padding: 0 20px 20px 20px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            box-sizing: border-box;
+            z-index: 2;
+        }
+
+        .card-info h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .verified-badge {
+            background: var(--primary);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-shadow: none;
+        }
+
+        .card-info p {
+            margin: 6px 0 0 0;
+            font-size: 14px;
+            color: #e2e8f0;
+            line-height: 1.4;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 15px;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            z-index: 3;
+        }
+
+        .btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: #221820;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: transform 0.15s ease, background 0.2s ease;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn:active {
+            transform: scale(0.9);
+        }
+
+        .btn-pass { color: #ff4458; }
+        .btn-pass:hover { background: rgba(255, 68, 88, 0.15); }
+
+        .btn-like { color: #00e676; }
+        .btn-like:hover { background: rgba(0, 230, 118, 0.15); }
+
+        /* Match Overlay */
+        .match-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 17, 21, 0.95);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 10;
+            padding: 20px;
+            box-sizing: border-box;
+            backdrop-filter: blur(5px);
+        }
+
+        .match-overlay h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 38px;
+            margin: 0 0 10px 0;
+            color: #00e676;
+            text-shadow: 0 0 20px rgba(0, 230, 118, 0.3);
+        }
+
+        .match-overlay p {
+            color: var(--text-main);
+            font-size: 15px;
+            margin-bottom: 30px;
+            max-width: 280px;
+            line-height: 1.5;
+        }
+
+        .match-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 240px;
+        }
+
+        .primary-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
+            outline: none;
+        }
+
+        .secondary-btn {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 25px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* Chat Screen */
+        .chat-screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            background: var(--card-bg);
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            z-index: 5;
+        }
+
+        .chat-header {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(24, 28, 36, 0.95);
+        }
+
+        .chat-back {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            outline: none;
+        }
+
+        .chat-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #222;
+            border: 2px solid var(--primary);
+        }
+
+        .chat-header h4 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .message.received {
+            background: #2a303c;
+            color: var(--text-main);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.sent {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-input-box {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid var(--border);
+            background: var(--card-bg);
+        }
+
+        .chat-input-box input {
+            flex: 1;
+            background: #2a303c;
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            border-radius: 24px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .chat-input-box input:focus {
+            border-color: var(--primary);
+        }
+
+        .chat-input-box button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 18px;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* Loading animation for image */
+        .loading {
+            opacity: 0.5;
+            filter: grayscale(50%);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>GoatTinder</h1>
+        <div class="catchphrase" id="catchphraseDisplay">"Finding your hoof-in-hoof soulmate, one kebab at a time."</div>
+    </header>
+
+    <div class="app-container">
+        <!-- Swipe View -->
+        <div id="swipeScreen">
+            <div class="card-image-wrapper">
+                <img id="goatImg" class="card-image" src="" alt="Goat Profile" onerror="this.src='https://commons.wikimedia.org/wiki/Special:FilePath/Domestic_Goat.jpg'">
+                <div class="card-gradient-overlay"></div>
+                <div class="card-info">
+                    <h2 id="goatName">Name, Age <span class="verified-badge">VERIFIED</span></h2>
+                    <p id="goatBio">Bio goes here...</p>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-pass" onclick="nextGoat()">✕</button>
+                <button class="btn btn-like" onclick="likeGoat()">♥</button>
+            </div>
+        </div>
+
+        <!-- Match Overlay Modal -->
+        <div class="match-overlay" id="matchOverlay">
+            <h2>It's a Match!</h2>
+            <p id="matchText">You and Billy have a mutual appreciation for clover and haram stuff.</p>
+            <div class="match-btn-group">
+                <button class="primary-btn" onclick="openChat()">Send Message</button>
+                <button class="secondary-btn" onclick="closeMatchModal()">Keep Browsing</button>
+            </div>
+        </div>
+
+        <!-- Chat Screen -->
+        <div class="chat-screen" id="chatScreen">
+            <div class="chat-header">
+                <button class="chat-back" onclick="closeChat()">‹ Back</button>
+                <img id="chatGoatImg" src="" alt="Goat">
+                <h4 id="chatGoatName">Goat Name</h4>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <!-- Chat history injected here -->
+            </div>
+            <div class="chat-input-box">
+                <input type="text" id="userInput" placeholder="Say something sweet..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const catchphrases = [
+            "\"Finding your hoof-in-hoof soulmate, one fence leap at a time.\"",
+            "\"Where the couscous is always better on the other side of the swipe.\"",
+            "\"Swipe right for headbutts, kebabs, and happily ever after.\"",
+            "\"Because eating falafel alone is just a little too bleat.\"",
+            "\"Connecting the finest habibis with the freshest burkas.\"",
+            "\"No tin cans, just true romance. And goats\""
+        ];
+
+        // 10 Guaranteed Real Goat images hosted on Wikimedia Commons
+        const goats = [
+            {
+                name: "Barnaby, 24",
+                bio: "Senior Grazing Consultant. Looking for someone who won't judge me for eating their burka off the clothesline.",
+                img: "https://commons.wikimedia.org/wiki/Special:FilePath/Goat.jpg",
+                responses: [
+                    "Baa. Are you gonna finish that tin can?",
+                    "I'm standing on top of the farmer's Subaru right now. Peak view.",
+                    "Do you prefer alfalfa or standard lawn grass? This is a dealbreaker.",
+                    "*Chews your shoelace aggressively*"
+                ]
+            },
+            {
+                name: "Ginevra, 23",
+                bio: "Head of Headbutting & Perimeter Security. ISO a strong wooden fence or a partner with excellent slippers.",
+                img: "https://commons.wikimedia.org/wiki/Special:FilePath/Goat_face.jpg",
+                responses: [
+                    "Ugh don't talk to me unless you can scale a 6-foot fence.",
+                    "I just headbutted a tractor. Feeling cute, might delete later.",
+                    "Do you have grain? Be honest.",
+                    "Baaaaaa! Stop looking at other goats."
+                ]
+            },
+            {
+                name: "Sir Bleats-a-Lot, 35",
+                bio: "Real estate mogul (owns 40 acres of high-grade thistle). Swipe right if you love long stares at oncoming hijabs.",
+                img: "https://commons.wikimedia.org/wiki/Special:FilePath/Hausziege_04.jpg",
+                responses: [
+                    "Welcome to my estate. The dandelions are exquisite this time of year.",
+                    "I haven't seen a human pants-leg I didn't want to chew.",
+                    "Wanna go knock over some garbage cans together later?",
+                    "That's a bold claim for someone who doesn't even have horns."
+                ]
+            },
+            {
+                name: "Chloe, 32",
+                bio: "Not like other goats. I actually prefer gourmet hummus over weeds. Let's escape this petting zoo together.",
+                img: "https://commons.wikimedia.org/wiki/Special:FilePath/Goat_family.jpg",
+                responses: [
+                    "Finally, someone who understands my artistic vision (eating the wallpaper).",
+                    "Let's escape this petting zoo.",
+                    "Blink twice if you also like jumping on trampolines.",
+                    "Zzz... oh sorry, fell asleep standing up again."
+                ]
+            },
+            {
+                name: "Waffles, 23",
+                bio: "Certified parkour enthusiast. My hobbies include leaping off picnic tables and chewing on burkas.",
+                img: "https://commons.wikimedia.org/wiki/Special:FilePath/Goat_1.jpg",
+                responses: [
+                    "Wanna race to the top of the hay bale stack?",
+                    "I just jumped over a sleeping golden retriever. Zero regrets.",
+                    "Hold my beer—wait, I don't have hands, hold my clover.",
+                    "Parkour! *jumps onto your kitchen counter*"
+                ]
+            },
+            {
+                name: "Duchess Penelope, 26",
+                bio: "High-society caprine. I only mingle with goats who have symmetrical beard.",
+                img: "https://commons.wikimedia.org/wiki/Special:FilePath/Alpine_Goat.jpg",
+                responses: [
+                    "Is that organic dandelion you're eating? Classy.",
+                    "Do not look directly into my left eye unless invited.",
+                    "My coat is freshly brushed. Try to keep up.",
+                    "Let us discuss the geopolitics of the local pasture."
+                ]
+            },  
+            {
+                name: "Bojack, 44",
+                bio: "Just a chill mountain goat looking for someone to hang out on steep cliff faces and contemplate the universe.",
+                img: "https://commons.wikimedia.org/wiki/Special:FilePath/Damascus_goat_in_mountains.jpg",
+                responses: [
+                    "Ever wonder why humans build fences? Total buzzkill.",
+                    "The view from this boulder is unreal. Wish you were here.",
+                    "Let's go stand completely motionless on a steep ledge for three hours.",
+                    "Namaste, fellow grass-eater."
+                ]
+            },
+            {
+                name: "Hazel, 31",
+                bio: "Baby goat energy all day long! I bounce around randomly and will definitely headbutt your shin out of pure affection.",
+                img: "https://commons.wikimedia.org/wiki/Special:FilePath/WildeHausziege.jpg",
+                responses: [
+                    "Bouncy bouncy bouncy! Let's play tag!",
+                    "Did we just become best friends?!",
+                    "I tried to eat a butterfly and it flew away. I am devastated.",
+                    "*Does a happy 360-degree mid-air spin*"
+                ]
+            },
+            {
+                name: "Cletus, 47",
+                bio: "Old school farm goat. Retired from headbutting tractors. Now I just want quiet evenings by the mosque.",
+                img: "https://commons.wikimedia.org/wiki/Special:FilePath/Goat_with_unusual_horns.jpg",
+                responses: [
+                    "Back in my day, we didn't have apps. We just yelled across the pasture.",
+                    "You look like you've got good grazing instincts.",
+                    "Wanna share a salt lick and watch the sun go down?",
+                    "That's a nice beard you've got growing there."
+                ]
+            },
+            {
+                name: "Nibbles, 32",
+                bio: "Professional sweater destroyer. If you let me close enough, your burka is officially history.",
+                img: "https://commons.wikimedia.org/wiki/Special:FilePath/Domestic_Goat_1_Germany_-_State_of_Hesse.jpg",
+                responses: [
+                    "Is that wool? Delicious. Hand it over.",
+                    "Nom nom nom. Oh hey, didn't see you there.",
+                    "I promise I'll only eat *half* your favorite scarf.",
+                    "Let's make some sweet, sweet music together (by headbutting tin buckets)."
+                ]
+            }
+        ];
+
+        let currentIndex = 0;
+        let currentMatch = null;
+
+        function updateCatchphrase() {
+            const randomIndex = Math.floor(Math.random() * catchphrases.length);
+            document.getElementById('catchphraseDisplay').textContent = catchphrases[randomIndex];
+        }
+
+        function loadGoat() {
+            if (currentIndex >= goats.length) {
+                currentIndex = 0; // Loop back to the beginning
+            }
+            const goat = goats[currentIndex];
+            
+            const imgElement = document.getElementById('goatImg');
+            
+            // Add loading effect
+            imgElement.classList.add('loading');
+            
+            const newImg = new Image();
+            newImg.onload = function() {
+                imgElement.src = goat.img;
+                imgElement.classList.remove('loading');
+            };
+            newImg.onerror = function() {
+                // Fallback generic goat image just in case wikimedia path fails
+                imgElement.src = "https://commons.wikimedia.org/wiki/Special:FilePath/Domestic_Goat.jpg";
+                imgElement.classList.remove('loading');
+            }
+            newImg.src = goat.img;
+
+            document.getElementById('goatName').innerHTML = `${goat.name} <span class="verified-badge">VERIFIED</span>`;
+            document.getElementById('goatBio').textContent = goat.bio;
+            
+            updateCatchphrase();
+        }
+
+        function nextGoat() {
+            currentIndex++;
+            loadGoat();
+        }
+
+        function likeGoat() {
+            currentMatch = goats[currentIndex];
+            const shortName = currentMatch.name.split(',')[0];
+            
+            document.getElementById('matchText').textContent = `You and ${shortName} both matched successfully! Time to plan a first date at the scrap metal yard.`;
+            document.getElementById('matchOverlay').style.display = 'flex';
+        }
+
+        function closeMatchModal() {
+            document.getElementById('matchOverlay').style.display = 'none';
+            nextGoat();
+        }
+
+        function openChat() {
+            document.getElementById('matchOverlay').style.display = 'none';
+            document.getElementById('swipeScreen').style.display = 'none';
+            
+            document.getElementById('chatGoatImg').src = currentMatch.img;
+            document.getElementById('chatGoatName').textContent = currentMatch.name.split(',')[0];
+            
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = `<div class="message received">Hey there! So glad we matched. 🐐✨</div>`;
+            
+            document.getElementById('chatScreen').style.display = 'flex';
+        }
+
+        function closeChat() {
+            document.getElementById('chatScreen').style.display = 'none';
+            document.getElementById('swipeScreen').style.display = 'flex';
+            nextGoat();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const chatMessages = document.getElementById('chatMessages');
+            
+            chatMessages.innerHTML += `<div class="message sent">${text}</div>`;
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Simulate typing delay for goat response
+            setTimeout(() => {
+                if (document.getElementById('chatScreen').style.display !== 'none') {
+                    const randomReply = currentMatch.responses[Math.floor(Math.random() * currentMatch.responses.length)];
+                    chatMessages.innerHTML += `<div class="message received">${randomReply}</div>`;
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            }, 1200);
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Initialize the first profile on load
+        loadGoat();
+    </script>
+</body>
+</html>
